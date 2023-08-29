@@ -119,6 +119,13 @@ function sintatic_evaluation(statement)
             throw "Sintaxe inválida. Identificador seguido de abertura de parênteses/colchetes/chaves.";
         }
     }
+
+    // CHECK FOR IDENTIFICATORS FOLLOWED BY IDENTIFICATORS
+    for (let i = 0; i < units.length - 1; i++) {
+        if (identificators.includes(units[i]) && identificators.includes(units[i+1])) {
+            throw "Sintaxe inválida. Identificador seguido de identificador.";
+        }
+    }
 }
 
 function deduction_tree(statement)
@@ -132,8 +139,28 @@ function deduction_tree(statement)
     for (i of ids) {
         variables[i] = true;
     }
+    let num_variables = Object.keys(variables).length;
+    let rows = Math.pow(2, num_variables);
 
-    console.log(variables);
+    let truth_table = [];
+
+    let to_binary = (n, d) => {
+        let binary = n.toString(2);
+        binary = binary.length != d ? "0".repeat(d - binary.length) + binary : binary;
+        return binary;
+    }
+
+    truth_table.push([]);
+    truth_table[0] = Object.keys(variables);
+    for (let i = 1; i < rows+1; i++) {
+        truth_table.push([]);
+        let binary = to_binary(i-1, num_variables);
+        for (let j = 0; j < num_variables; j++) {
+            let to_bool = binary.substr(j, 1) === '1';
+            truth_table[i].push(to_bool);
+        }
+    }
+    console.log(truth_table);
 
     function conjunction() {
 
@@ -150,6 +177,28 @@ function deduction_tree(statement)
     function biconditional() {
 
     }
+
+    const result = document.querySelector("#result");
+    const table = document.createElement('table');
+    for (let i = 0; i < rows+1; i++) {
+        const tr = table.insertRow();
+        for (j of truth_table[i]) {
+            const td = tr.insertCell();
+            let text;
+            if (i === 0) {
+                text = j; 
+            }
+            else {
+                text = j ? "V" : "F";
+            }
+            td.appendChild(document.createTextNode(`${text}`));
+        }
+    }
+    
+    if (result.childElementCount !== 0) {
+        result.removeChild(result.children[0]);
+    }
+    result.appendChild(table);
 
     if (statement.length === 1) {
         return true;
@@ -169,7 +218,7 @@ function handle_input()
         sintatic_evaluation(input);
         document.querySelector("#status").innerText += "✅ Análise sintática\n"
         let result = deduction_tree(input);
-        document.querySelector("#result").innerText = result;
+        // document.querySelector("#result").innerText = result;
     }
     catch (err) {
         document.querySelector("#status").innerText += "❌ " + err;
