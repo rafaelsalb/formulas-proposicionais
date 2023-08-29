@@ -5,15 +5,90 @@
         <title>Verificador de Fórmulas Proposicionais</title>
 
         <script src="index.js"></script>
+        <style>
+            body {
+                display: grid;
+                align-content: center;
+                justify-content: space-around;
+                justify-items: center;
+                row-gap: 4px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+
+            #formula_input {
+                width: 50%;
+            }
+
+            #formula_input_container {
+                display: flex;
+                align-items: center; /* Vertically center the contents */
+                justify-content: center;
+                font-size: 0;
+                line-height: 0;
+                margin: 0;
+                padding: 0;
+                width: 100%;
+            }
+
+            label {
+                margin-bottom: 0px;
+            }
+
+            input {
+                margin-top: 0px;
+            }
+
+            #keyboard input {
+                border-radius: 0;
+                min-width: 36;
+                min-height: 36px;
+            }
+
+            .output {
+                /* margin-top: 24px; */
+                min-width: 300px;
+                max-width: 300px;
+                min-height: 50px;
+                border: 1px solid black;
+                border-radius: 8px;
+                padding: 4px;
+                background-color: rgb(32, 32, 32);
+                color: white;
+            }
+        </style>
     </head>
 
     <body>
         <h1>Verificador de Fórmulas Proposicionais</h1>
-        <label>Insira uma fórmula:</label>
-        <br>
-        <input type="text" id="input">
-        <input type="submit" onclick="handle_input()">
-        <div id="result"></div>
+        <h3>Insira uma fórmula:</h3>
+        <div id="formula_input_container">
+            <input type="text" id="formula_input">
+            <input type="button" onclick="handle_input()" value="Enviar">
+        </div>
+        <div id="keyboard">
+            <div>
+                <input type="button" value="A" onclick="keyboard_type(this.value)">
+                <input type="button" value="B" onclick="keyboard_type(this.value)">
+                <input type="button" value="C" onclick="keyboard_type(this.value)">
+                <input type="button" value="D" onclick="keyboard_type(this.value)">
+                <input type="button" value="E" onclick="keyboard_type(this.value)">
+            </div>
+            <div>
+                <input type="button" value="^" onclick="keyboard_type(this.value)">
+                <input type="button" value="v" onclick="keyboard_type(this.value)">
+                <input type="button" value="→" onclick="keyboard_type(this.value)">
+                <input type="button" value="↔" onclick="keyboard_type(this.value)">
+                <input type="button" value="∼" onclick="keyboard_type(this.value)">
+            </div>
+        </div>
+        <div>
+            RESULTADO
+            <div id="result" class="output"></div>
+        </div>
+        <div>
+            STATUS
+            <div id="status" class="output"></div>
+        </div>
     </body>
 
 </html>

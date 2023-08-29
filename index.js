@@ -67,11 +67,9 @@ function sintatic_evaluation(statement)
             only_operators.push([units[i], i]);
         }
     }
-    console.log(only_operators);
 
     // CHECK FOR OPERATOR CONFLICTS
     for (let i = 0; i < only_operators.length - 1; i++) {
-        console.log(i);
         if (!"∼∼~".includes(only_operators[i][0]) && !"∼∼~".includes(only_operators[i+1][0])) {
             if (only_operators[i][1] === (only_operators[i+1][1] - 1)) {
                 throw "Sintaxe inválida. Conflito de operadores: " + only_operators[i][0] + only_operators[i + 1][0];
@@ -123,18 +121,62 @@ function sintatic_evaluation(statement)
     }
 }
 
+function deduction_tree(statement)
+{
+    let units = statement.split('');
+    let ids = units.filter((c) => {
+        return "ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(c);
+    });
+
+    let variables = {};
+    for (i of ids) {
+        variables[i] = true;
+    }
+
+    console.log(variables);
+
+    function conjunction() {
+
+    }
+
+    function disjunction() {
+
+    }
+
+    function conditional() {
+
+    }
+
+    function biconditional() {
+
+    }
+
+    if (statement.length === 1) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 function handle_input()
 {
     try {
-        document.querySelector("#result").innerText = "";
-        let input = document.querySelector("#input").value;
+        document.querySelector("#status").innerText = "";
+        let input = document.querySelector("#formula_input").value;
         lexical_evaluation(input);
-        document.querySelector("#result").innerText += "✓ Análise léxica\n"
+        document.querySelector("#status").innerText += "✅ Análise léxica\n"
         sintatic_evaluation(input);
-        document.querySelector("#result").innerText += "✓ Análise sintática\n"
-        document.querySelector("#result").innerText += "ok " + new Date().getHours() + ":" + new Date().getMinutes() + ":" + new Date().getSeconds();
+        document.querySelector("#status").innerText += "✅ Análise sintática\n"
+        let result = deduction_tree(input);
+        document.querySelector("#result").innerText = result;
     }
     catch (err) {
-        document.querySelector("#result").innerText += "X " + err;
+        document.querySelector("#status").innerText += "❌ " + err;
     }
+}
+
+function keyboard_type(char)
+{
+    document.querySelector("#formula_input").value += char;
 }
