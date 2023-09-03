@@ -1,6 +1,6 @@
 function lexical_evaluation(statement)
 {
-    let allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789()[]{}∼∼~^∧v→→↔↔ ";
+    let allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789()∼∼~^∧v→→↔↔ ";
     statement.split('').forEach(
         (c) => {
             if (!allowed.includes(c)) {
@@ -128,15 +128,144 @@ function sintatic_evaluation(statement)
     }
 }
 
+function shunting_yard(expression)
+{
+    let is_variable = (c) => { return "ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(c) };
+    let is_operator = (c) => { return "∼∼~^∧v→→↔↔".includes(c) };
+    let operator_precedence = {
+        "∼": 0,
+        "∼": 0,
+        "~": 0,
+        "^": 1,
+        "∧": 1,
+        "v": 2,
+        "→": 3,
+        "→": 3,
+        "↔": 4,
+        "↔": 4,
+    };
+
+    let output = [];
+    let operator_stack = [];
+
+    for (i of expression) {
+        if (is_variable(i)) {
+            output.push(i);
+        }
+        else if (is_operator(i)) {
+            let j = operator_stack.length - 1;
+            let curr_operator = i;
+            while (operator_stack.length > 0 && operator_precedence[curr_operator] > operator_precedence[operator_stack[j]]) {
+                output.push(operator_stack.pop());
+                j--;
+            }
+            operator_stack.push(curr_operator);
+        }
+        else if (i === "(") {
+            operator_stack.push(i);
+        }
+        else if (i === ")") {
+            let j = operator_stack.length;
+            while (operator_stack[j-1] !== "(") {
+                output.push(operator_stack.pop());
+                j--;
+            }
+            operator_stack.pop()
+        }
+        // console.log(i);
+        // console.log(output);
+        // console.log(operator_stack);
+    }
+
+    // console.log(output);
+    // console.log(operator_stack);
+    while (operator_stack.length) {
+        output.push(operator_stack.pop());
+    }
+
+    return output;
+}
+
+function conjunction(p, q) {
+    return p && q;
+}
+
+function disjunction(p, q) {
+    return p || q;
+}
+
+function conditional(p, q) {
+    return !p || q
+}
+
+function biconditional(p, q) {
+    return ((!p || q) && (!q || p));
+}
+
+function negation(p) {
+    return !p;
+}
+
+let operations = {
+    "∼": negation,
+    "∼": negation,
+    "~": negation,
+    "^": conjunction,
+    "∧": conjunction,
+    "v": disjunction,
+    "→": conditional,
+    "→": conditional,
+    "↔": biconditional,
+    "↔": biconditional,
+};
+
+function evaluate(expression, values)
+{
+    let is_variable = (c) => { return "ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(c) };
+    let is_negation = (c) => { return "∼∼~".includes(c) };
+
+    let stack = [];
+
+    // console.log(expression);
+    // console.log(values);
+    let iter = 0;
+
+    for (i of expression) {
+        // console.log(iter++);
+        // console.log(stack);
+        if (is_variable(i)) {
+            // console.log("is var");
+            stack.push(values[i]);
+            continue;
+        }
+        else if (!is_negation(i)){
+            // console.log("is op: ", i);
+            let b = stack.pop();
+            let a = stack.pop();
+            // console.log(a, b);
+            stack.push(operations[i](a, b));
+            continue;
+        }
+        else {
+            let a = stack.pop();
+            stack.push(operations[i](a));
+        }
+    }
+    // console.log(stack);
+    // console.log(stack[stack.length-1]);
+    return stack[stack.length-1];
+}
+
 function deduction_tree(statement)
 {
     let units = statement.split('');
-    let ids = units.filter((c) => {
+    let identificators = units.filter((c) => {
         return "ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(c);
     });
+    // console.log(identificators);
 
     let variables = {};
-    for (i of ids) {
+    for (i of identificators) {
         variables[i] = true;
     }
     let num_variables = Object.keys(variables).length;
@@ -160,26 +289,14 @@ function deduction_tree(statement)
             truth_table[i].push(to_bool);
         }
     }
-    console.log(truth_table);
-
-    function conjunction() {
-
-    }
-
-    function disjunction() {
-
-    }
-
-    function conditional() {
-
-    }
-
-    function biconditional() {
-
-    }
+    formatted_stmt = statement.split(' ').reduce((acc, c) => {return acc + c});
+    truth_table[0].push(formatted_stmt);
+    // console.log(truth_table);
+    // console.log(formatted_stmt);
 
     const result = document.querySelector("#result");
     const table = document.createElement('table');
+    table.id = "result_table";
     for (let i = 0; i < rows+1; i++) {
         const tr = table.insertRow();
         for (j of truth_table[i]) {
@@ -191,21 +308,40 @@ function deduction_tree(statement)
             else {
                 text = j ? "V" : "F";
             }
+            td.id = `table_{$i}-{$j}`;
             td.appendChild(document.createTextNode(`${text}`));
         }
     }
-    
+
     if (result.childElementCount !== 0) {
         result.removeChild(result.children[0]);
     }
     result.appendChild(table);
 
-    if (statement.length === 1) {
-        return true;
+    let table_rows = Array.prototype.slice.call(document.querySelector("#result_table").children[0].children);
+    // console.log(table_rows);
+    let result_rows = [];
+    for (i of table_rows.slice(1)) {
+        // console.log(i.innerText);
+        let var_values = i.innerText.split("\t");
+        // console.log(var_values);
+        let values = {};
+        for (let j = 0; j < num_variables; j++) {
+            values[identificators[j]] = var_values[j] === "V";
+        }
+        // console.log(values);
+        let rpn = shunting_yard(formatted_stmt);
+        result_rows.push(evaluate(rpn, values));
     }
-    else {
-        return false;
+    console.log(result_rows);
+
+    for (let i = 0; i < result_rows.length; i++) {
+        let row = table.rows[i + 1];
+        row.insertCell();
+        row.cells[row.cells.length-1].innerText = result_rows[i] ? "V" : "F";
     }
+
+    return result_rows.reduce((c, x) => {return c && x});
 }
 
 function handle_input()
@@ -218,7 +354,7 @@ function handle_input()
         sintatic_evaluation(input);
         document.querySelector("#status").innerText += "✅ Análise sintática\n"
         let result = deduction_tree(input);
-        // document.querySelector("#result").innerText = result;
+        console.log(result);
     }
     catch (err) {
         document.querySelector("#status").innerText += "❌ " + err;
