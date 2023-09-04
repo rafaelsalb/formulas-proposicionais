@@ -138,7 +138,7 @@ function shunting_yard(expression)
         "~": 0,
         "^": 1,
         "∧": 1,
-        "v": 2,
+        "v": 1,
         "→": 3,
         "→": 3,
         "↔": 4,
@@ -172,13 +172,8 @@ function shunting_yard(expression)
             }
             operator_stack.pop()
         }
-        // console.log(i);
-        // console.log(output);
-        // console.log(operator_stack);
     }
 
-    // console.log(output);
-    // console.log(operator_stack);
     while (operator_stack.length) {
         output.push(operator_stack.pop());
     }
@@ -225,24 +220,17 @@ function evaluate(expression, values)
     let is_negation = (c) => { return "∼∼~".includes(c) };
 
     let stack = [];
-
-    // console.log(expression);
-    // console.log(values);
     let iter = 0;
 
     for (i of expression) {
-        // console.log(iter++);
-        // console.log(stack);
+        console.log(iter++, stack);
         if (is_variable(i)) {
-            // console.log("is var");
             stack.push(values[i]);
             continue;
         }
         else if (!is_negation(i)){
-            // console.log("is op: ", i);
             let b = stack.pop();
             let a = stack.pop();
-            // console.log(a, b);
             stack.push(operations[i](a, b));
             continue;
         }
@@ -251,18 +239,18 @@ function evaluate(expression, values)
             stack.push(operations[i](a));
         }
     }
-    // console.log(stack);
-    // console.log(stack[stack.length-1]);
     return stack[stack.length-1];
 }
 
 function deduction_tree(statement)
 {
     let units = statement.split('');
-    let identificators = units.filter((c) => {
+    let identificators = units.filter((c, i) => {
         return "ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(c);
     });
-    // console.log(identificators);
+    identificators = identificators.filter((c, i) => {
+        return identificators.indexOf(c) === i;
+    });
 
     let variables = {};
     for (i of identificators) {
@@ -291,8 +279,6 @@ function deduction_tree(statement)
     }
     formatted_stmt = statement.split(' ').reduce((acc, c) => {return acc + c});
     truth_table[0].push(formatted_stmt);
-    // console.log(truth_table);
-    // console.log(formatted_stmt);
 
     const result = document.querySelector("#result");
     const table = document.createElement('table');
@@ -319,21 +305,16 @@ function deduction_tree(statement)
     result.appendChild(table);
 
     let table_rows = Array.prototype.slice.call(document.querySelector("#result_table").children[0].children);
-    // console.log(table_rows);
     let result_rows = [];
     for (i of table_rows.slice(1)) {
-        // console.log(i.innerText);
         let var_values = i.innerText.split("\t");
-        // console.log(var_values);
         let values = {};
         for (let j = 0; j < num_variables; j++) {
             values[identificators[j]] = var_values[j] === "V";
         }
-        // console.log(values);
         let rpn = shunting_yard(formatted_stmt);
         result_rows.push(evaluate(rpn, values));
     }
-    console.log(result_rows);
 
     for (let i = 0; i < result_rows.length; i++) {
         let row = table.rows[i + 1];
@@ -354,7 +335,6 @@ function handle_input()
         sintatic_evaluation(input);
         document.querySelector("#status").innerText += "✅ Análise sintática\n"
         let result = deduction_tree(input);
-        console.log(result);
     }
     catch (err) {
         document.querySelector("#status").innerText += "❌ " + err;
