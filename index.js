@@ -223,7 +223,6 @@ function evaluate(expression, values)
     let iter = 0;
 
     for (i of expression) {
-        console.log(iter++, stack);
         if (is_variable(i)) {
             stack.push(values[i]);
             continue;
@@ -322,7 +321,7 @@ function deduction_tree(statement)
         row.cells[row.cells.length-1].innerText = result_rows[i] ? "V" : "F";
     }
 
-    return result_rows.reduce((c, x) => {return c && x});
+    return result_rows.reduce((c, x) => { return c && x });
 }
 
 function handle_input()
@@ -335,6 +334,12 @@ function handle_input()
         sintatic_evaluation(input);
         document.querySelector("#status").innerText += "✅ Análise sintática\n"
         let result = deduction_tree(input);
+        if (result) {
+            document.querySelector("#status").innerText += "✅ É tautologia.\n"
+        }
+        else {
+            document.querySelector("#status").innerText += "❌ Não é tautologia.\n"
+        }
     }
     catch (err) {
         document.querySelector("#status").innerText += "❌ " + err;
